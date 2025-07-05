@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: AdmInfo8889
+      POSTGRES_DB: appdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  evolution:
+    image: atendai/evolution-api
+    environment:
+      AUTHENTICATION_API_KEY: evo-secret-key
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: "postgresql"
+      DATABASE_CONNECTION_URI: "postgresql://postgres:AdmInfo8889@postgres:5432/appdb?schema=public"
+      CONFIG_SESSION_PHONE_VERSION: 2.3000.1023204200
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
+  n8n:
+    image: n8nio/n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=appdb
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=AdmInfo8889
+    volumes:
+      - ~/.n8n:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
